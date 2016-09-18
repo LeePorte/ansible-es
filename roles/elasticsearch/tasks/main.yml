@@ -1,0 +1,30 @@
+---
+- name: ensure elasticsearch key is installed
+  apt_key: url=https://packages.elastic.co/GPG-KEY-elasticsearch state=present
+  become: true
+  tags:
+    - packages
+
+- name: ensure elasticsearch repository is installed
+  apt_repository: repo='deb https://packages.elastic.co/elasticsearch/2.x/debian stable main' state=present update_cache=yes
+  become: true
+  tags:
+    - packages
+
+- name: ensure packages are installed
+  apt: pkg={{ item }} state=latest
+  with_items:
+    - elasticsearch
+  become: true
+  tags:
+    - packages
+
+- name: ensure elasticsearch config is copied over
+  template: src=elasticsearch.j2 dest=/etc/elasticsearch/elasticsearch.yml
+  become: true
+  tags:
+    - configuration
+
+- name: restart elasticsearch
+  service: name=elasticsearch state=restarted
+  become: true

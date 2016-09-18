@@ -1,0 +1,9 @@
+---
+- hosts: tag_Role_search
+  serial: 1
+  become: yes
+  become_method: sudo
+  roles:
+    - java
+    - elasticsearch
+

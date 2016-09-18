@@ -1,0 +1,10 @@
+cluster.name: search-cluster
+node.name: "{{ansible_hostname}}"
+path.data: /var/es
+path.logs: /var/log/es/
+bootstrap.memory_lock: true
+network.host: 0.0.0.0
+http.port: 9200
+discovery.zen.ping.unicast.hosts: ['{% for host in groups['tag_Role_search'] %}"{{ hostvars[host]['ansible_eth0']['ipv4']['address'] }}"{% if not loop.last %},{% endif %}{% endfor %}']
+discovery.zen.minimum_master_nodes: 2
+gateway.recover_after_nodes: 2
