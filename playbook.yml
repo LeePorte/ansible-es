@@ -6,4 +6,11 @@
   roles:
     - java
     - elasticsearch
-
+  vars_files:
+    - aws/vars/tags.yml	
+    - aws/vars/vpc.yml
+    - aws/vars/ec2_key.yml
+    - aws/vars/esserver.yml
+    - aws/vars/elb.yml
+  tasks:
+    - include: aws/tasks/elb.yml

@@ -7,12 +7,8 @@
      - aws/vars/vpc.yml
      - aws/vars/ec2_key.yml
      - aws/vars/esserver.yml
-
+     - aws/vars/elb.yml
    tasks:
      - include: aws/tasks/vpc.yml
      - include: aws/tasks/ec2_key.yml
      - include: aws/tasks/esserver.yml
-
-
-
-     
