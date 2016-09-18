@@ -1,0 +1,4 @@
+---
+ ENV: testing
+ application: ElasticSearch
+ server_role: search
