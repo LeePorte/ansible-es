@@ -44,9 +44,6 @@
       - "{{ public_subnet_1 }}"
    register: es
 
- - name: What's in es?
-   debug: var=es
-
  - name: ESServer | Set the Instances facts
    set_fact:
      instance_public_ip_1: "{{ es.results[0].instances[0].public_ip }}"
