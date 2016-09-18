@@ -6,11 +6,12 @@
      - aws/vars/tags.yml	
      - aws/vars/vpc.yml
      - aws/vars/ec2_key.yml
+     - aws/vars/esserver.yml
 
    tasks:
      - include: aws/tasks/vpc.yml
      - include: aws/tasks/ec2_key.yml
-
+     - include: aws/tasks/esserver.yml
 
 
 

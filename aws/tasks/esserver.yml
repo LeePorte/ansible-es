@@ -1,0 +1,90 @@
+---
+ - name: ESServer | Create ES Security Group
+   local_action:
+     module: ec2_group
+     name: "{{ item.sg_name }}"
+     description: "{{ item.sg_description }}"
+     region: "{{ vpc_region }}" 
+     vpc_id: "{{ vpc.vpc_id }}"
+     state: present
+     rules: "{{ item.sg_rules }}"
+   with_items: "{{ es_security_groups }}"
+   register: es_sg
+
+ - name: ESServer | Tag the ES Security Group with a name
+   local_action:
+     module: ec2_tag
+     resource: "{{ item.group_id}}"
+     region: "{{ vpc_region }}"
+     state: present
+     tags:
+       Name: "{{ vpc_name }}-{{ item.item.sg_name }}"
+   with_items: "{{ es_sg.results }}"
+ 
+ - name: ESServer | Create the ESServer Instance(s)
+   local_action:
+     module: ec2
+     region: "{{ vpc_region }}"
+     group: "{{ es_security_groups[0].sg_name }}"
+     keypair: "{{ key_name }}"
+     instance_type: "{{ es_instance_type }}"
+     image: ami-ed82e39e
+     exact_count: 3
+     count_tag: Role= "{{ server_role }}"
+     vpc_subnet_id: "{{ item }}"
+     assign_public_ip: True
+     wait: True
+     wait_timeout: 600
+     instance_tags:
+       Name: "{{ vpc_name }}_ES_Instance"
+       Environment: "{{ ENV }}"
+       Role: "{{ server_role }}"
+       Application: "{{ application }}"
+   with_items:
+      - "{{ public_subnet_1 }}"
+   register: es
+
+ - name: What's in es?
+   debug: var=es
+
+ - name: ESServer | Set the Instances facts
+   set_fact:
+     instance_public_ip_1: "{{ es.results[0].instances[0].public_ip }}"
+     instance_id_1: "{{ es.results[0].instances[0].id }}"
+     instance_public_ip_2: "{{ es.results[0].instances[1].public_ip }}"
+     instance_id_2: "{{ es.results[0].instances[1].id }}"
+     instance_public_ip_3: "{{ es.results[0].instances[2].public_ip }}"
+     instance_id_3: "{{ es.results[0].instances[2].id }}"
+
+
+ - name: ESServer | Add the newly created EC2 instance(s) to the local host group (located inside the directory)
+   local_action: 
+     module: lineinfile 
+     dest: "./hosts" 
+     regexp: "{{ item }}" 
+     insertafter: "[esserver]" 
+     line: "{{ item }}"
+   with_items:
+      - "{{ instance_public_ip_1 }}"
+      - "{{ instance_public_ip_2 }}"
+      - "{{ instance_public_ip_3 }}"
+
+ - name: ESServer | Wait for SSH to come up
+   local_action: 
+     module: wait_for 
+     host: "{{ item }}" 
+     port: 22 
+     state: started
+   with_items: 
+     - "{{ instance_public_ip_1 }}"
+     - "{{ instance_public_ip_2 }}" 
+     - "{{ instance_public_ip_3 }}"
+
+ - name: Create SSH Group to login dynamically to EC2 Instance(s)
+   add_host: 
+     hostname: "{{ item }}"
+     groupname: esserver
+   with_items: 
+     - "{{ instance_public_ip_1 }}"
+     - "{{ instance_public_ip_2 }}" 
+     - "{{ instance_public_ip_3 }}"
